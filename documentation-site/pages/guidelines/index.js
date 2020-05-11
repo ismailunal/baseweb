@@ -13,12 +13,12 @@ import * as React from 'react';
 import fetch from 'node-fetch';
 import {useStyletron} from 'baseui';
 
-declare var process: {env: {FIGMA_AUTH_TOKEN: string, FIGMA_FILE: string}};
+declare var process: {env: {FIGMA_AUTH_TOKEN: string, FIGMA_FILE_ID: string}};
 
 async function getStaticProps({params}: {params: {node: any}}) {
   // Query top-level figma file, this ID should never change
   const figmaFileRequest = await fetch(
-    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE}?depth=2`,
+    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}?depth=2`,
     {
       headers: {
         'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,

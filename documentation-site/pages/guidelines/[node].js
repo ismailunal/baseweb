@@ -21,12 +21,12 @@ import {
   Images,
 } from '../../components/guidelines/render.js';
 
-declare var process: {env: {FIGMA_AUTH_TOKEN: string, FIGMA_FILE: string}};
+declare var process: {env: {FIGMA_AUTH_TOKEN: string, FIGMA_FILE_ID: string}};
 
 async function getStaticPaths() {
   // Query top-level figma file, this should not change
   const figmaFileRequest = await fetch(
-    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE}?depth=2`,
+    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}?depth=2`,
     {
       headers: {
         'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,
@@ -55,7 +55,7 @@ async function getStaticProps({params}: {params: {node: any}}) {
   // Get all images for file
   // TODO(@sandgraham): Can we not fetch every image in the entire file?
   const figmaImageFillsRequest = await fetch(
-    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE}/images`,
+    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}/images`,
     {
       headers: {
         'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,
@@ -66,7 +66,7 @@ async function getStaticProps({params}: {params: {node: any}}) {
 
   const figmaNodesRequest = await fetch(
     `https://api.figma.com/v1/files/${
-      process.env.FIGMA_FILE
+      process.env.FIGMA_FILE_ID
     }/nodes?ids=${params.node.replace('-', ':')}`,
     {
       headers: {
@@ -112,7 +112,7 @@ async function getStaticProps({params}: {params: {node: any}}) {
     // Get svg url for each vector node in our list
     const figmaVectorImageUrlsRequest = await fetch(
       `https://api.figma.com/v1/images/${
-        process.env.FIGMA_FILE
+        process.env.FIGMA_FILE_ID
       }?ids=${vectorNodes.map(n => n.id).join(',')}&format=svg`,
       {
         headers: {
