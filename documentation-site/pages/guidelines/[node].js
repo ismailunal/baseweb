@@ -24,31 +24,36 @@ import {
 declare var process: {env: {FIGMA_AUTH_TOKEN: string, FIGMA_FILE_ID: string}};
 
 async function getStaticPaths() {
-  // Query top-level figma file, this should not change
-  const figmaFileRequest = await fetch(
-    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}?depth=2`,
-    {
-      headers: {
-        'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,
+  try {
+    // Query top-level figma file, this should not change
+    const figmaFileRequest = await fetch(
+      `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}?depth=2`,
+      {
+        headers: {
+          'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,
+        },
       },
-    },
-  );
+    );
 
-  // Figma structure: File > Pages > Frames
-  // By convention, we use the top-level frames as individual pages
-  const figmaFile = await figmaFileRequest.json();
-  const figmaPages = figmaFile.document.children;
-  const figmaTopLevelFrames = figmaPages.reduce(
-    (acc, cur) => [...acc, ...cur.children],
-    [],
-  );
+    // Figma structure: File > Pages > Frames
+    // By convention, we use the top-level frames as individual pages
+    const figmaFile = await figmaFileRequest.json();
+    const figmaPages = figmaFile.document.children;
+    const figmaTopLevelFrames = figmaPages.reduce(
+      (acc, cur) => [...acc, ...cur.children],
+      [],
+    );
 
-  return {
-    paths: figmaTopLevelFrames.map(f => ({
-      params: {node: f.id.replace(':', '-')},
-    })),
-    fallback: false,
-  };
+    return {
+      paths: figmaTopLevelFrames.map(f => ({
+        params: {node: f.id.replace(':', '-')},
+      })),
+      fallback: false,
+    };
+  } catch (er) {
+    console.error(er);
+    return {paths: [], fallback: false};
+  }
 }
 
 async function getStaticProps({params}: {params: {node: any}}) {

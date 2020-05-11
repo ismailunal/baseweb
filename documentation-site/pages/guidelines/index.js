@@ -16,45 +16,59 @@ import {useStyletron} from 'baseui';
 declare var process: {env: {FIGMA_AUTH_TOKEN: string, FIGMA_FILE_ID: string}};
 
 async function getStaticProps({params}: {params: {node: any}}) {
-  // Query top-level figma file, this ID should never change
-  const figmaFileRequest = await fetch(
-    `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}?depth=2`,
-    {
-      headers: {
-        'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,
+  console.log(process.env.FIGMA_FILE_ID.substr(0, 4));
+  console.log(process.env.FIGMA_AUTH_TOKEN.substr(0, 4));
+
+  try {
+    // Query top-level figma file, this ID should never change
+    const figmaFileRequest = await fetch(
+      `https://api.figma.com/v1/files/${process.env.FIGMA_FILE_ID}?depth=2`,
+      {
+        headers: {
+          'X-FIGMA-TOKEN': process.env.FIGMA_AUTH_TOKEN,
+        },
       },
-    },
-  );
+    );
 
-  // Figma file structure: File > Pages > Frames.
-  // By convention, we use the top-level frames in each figma page
-  // as individual web pages.
-  const figmaFile = await figmaFileRequest.json();
-  const figmaPages = figmaFile.document.children;
+    // Figma file structure: File > Pages > Frames.
+    // By convention, we use the top-level frames in each figma page
+    // as individual web pages.
+    const figmaFile = await figmaFileRequest.json();
+    const figmaPages = figmaFile.document.children;
 
-  return {
-    props: {
-      figmaPages,
-    },
-  };
+    return {
+      props: {
+        figmaPages,
+      },
+    };
+  } catch (er) {
+    console.error(er);
+    return {
+      props: {
+        figmaPages: [],
+      },
+    };
+  }
 }
 
 function Index({figmaPages}: any) {
   const [css] = useStyletron();
   return (
     <div>
-      {figmaPages.map(page => (
-        <div key={page.id} className={css({marginBottom: '16px'})}>
-          <div>{page.name}</div>
-          {page.children.map(frame => (
-            <div key={frame.id} className={css({marginLeft: '16px'})}>
-              <a href={`/guidelines/${frame.id.replace(':', '-')}`}>
-                {frame.name}
-              </a>
+      {figmaPages.length > 0
+        ? figmaPages.map(page => (
+            <div key={page.id} className={css({marginBottom: '16px'})}>
+              <div>{page.name}</div>
+              {page.children.map(frame => (
+                <div key={frame.id} className={css({marginLeft: '16px'})}>
+                  <a href={`/guidelines/${frame.id.replace(':', '-')}`}>
+                    {frame.name}
+                  </a>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ))}
+          ))
+        : 'No pages were found.'}
     </div>
   );
 }
